@@ -72,7 +72,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 
 	// Object to easily build iiwa_msgs from the current robot state
-	private iiwaMessageGenerator helper;
+	private iiwaMessageGenerator dataspaceHelper;
 
 	// Local iiwa_msgs to store received messages 
 	private geometry_msgs.PoseStamped cp;
@@ -112,16 +112,16 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName) {
 		iiwaName = robotName;
-		helper = new iiwaMessageGenerator(iiwaName);
+		dataspaceHelper = new iiwaMessageGenerator(iiwaName);
 
-		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
-		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
-		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
-		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
+		cp = dataspaceHelper.buildMessage(geometry_msgs.PoseStamped._TYPE);
+		jp = dataspaceHelper.buildMessage(iiwa_msgs.JointPosition._TYPE);
+		jpv = dataspaceHelper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
+		jv = dataspaceHelper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
 
-		helper.getCurrentCartesianPose(cp, robot, frame);
-		helper.getCurrentJointPosition(jp, robot);
-		helper.getCurrentJointPositionVelocity(jpv, robot);
+		dataspaceHelper.getCurrentCartesianPose(cp, robot, frame);
+		dataspaceHelper.getCurrentJointPosition(jp, robot);
+		dataspaceHelper.getCurrentJointPositionVelocity(jpv, robot);
 	}
 
 	/**

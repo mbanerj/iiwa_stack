@@ -223,7 +223,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
 		node = connectedNode;
-		initSemaphore.release();
+		getInitSemaphore().release();
 	}
 
 	/**
@@ -231,11 +231,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	 * @throws InterruptedException
 	 */
 	public void waitForInitialization() throws InterruptedException {
-		initSemaphore.acquire();
+		getInitSemaphore().acquire();
 	}
 
 	private ParameterTree getParameterTree() {
-		if (initSemaphore.availablePermits() > 0)
+		if (getInitSemaphore().availablePermits() > 0)
 			System.out.println("waitForInitialization not called before using parameters!");
 		return node.getParameterTree();
 	}
@@ -500,6 +500,14 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			return null;
 		}
 		return args;
+	}
+
+	public Semaphore getInitSemaphore() {
+		return initSemaphore;
+	}
+
+	public void setInitSemaphore(Semaphore initSemaphore) {
+		this.initSemaphore = initSemaphore;
 	}
 
 }

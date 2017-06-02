@@ -26,10 +26,14 @@ package de.tum.in.camp.kuka.ros;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.xmlrpc.util.ThreadPool;
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
+import org.ros.node.NodeMain;
 import org.ros.node.NodeMainExecutor;
 import org.ros.time.NtpTimeProvider;
 
@@ -39,9 +43,11 @@ import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
+import com.kuka.roboticsAPI.uiModel.ApplicationDialogType;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
+import Dataspace.*;
 
 /*
  * Base application for all ROS-Sunrise applications. 
@@ -83,6 +89,13 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected abstract void initializeApp();
 	protected abstract void beforeControlLoop();
 	protected abstract void controlLoop();
+	
+	//Custom Applications
+	//protected ROSCustomRoutines_TEMPLATE customTemp;
+	protected abstract void custom_InitializeApp();
+	protected abstract void custom_BeforeControlLoop();
+	protected abstract void custom_Loop();
+	protected abstract void custom_Cleanup();
 
 	/*
 	 * SmartServo control makes the control loop very slow
@@ -147,9 +160,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			return;
 		}
 		
-		 // Additional initialization from subclasses.
+		 // Additional initialization from subclasses and custom subroutines.
+		custom_InitializeApp();
 		initializeApp();
-
+		
 		initSuccessful = true;  // We cannot throw here.
 	}
 
@@ -163,10 +177,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			configuration.waitForInitialization();
 			getLogger().info("ROS Master is connected!");
 		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-			return;
-		}
+			getLogger().error("Error while connecting to ROS Master: " + e1.toString());
 
+		}
+		
 		getLogger().info("Using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
 
 		jointVelocity = configuration.getDefaultRelativeJointVelocity();
@@ -207,6 +221,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		}
 
 		// Run what is needed before the control loop in the subclasses.
+		custom_BeforeControlLoop();
 		beforeControlLoop();
 		
 		running = true;
@@ -215,12 +230,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		getLogger().info("Starting the ROS control loop...");
 		try {
 			while(running) { 
+				
 				decimationCounter++;
 
 				// This will publish the current robot state on the various ROS topics.
 				publisher.publishCurrentState(robot, motion, toolFrame);
 
 				if ((decimationCounter % controlDecimation) == 0)
+					custom_Loop();	// Perform custom actions to be run with each iteration of control loop
 					controlLoop();  // Perform control loop specified by subclass
 			} 
 		}
@@ -228,7 +245,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			getLogger().info("ROS control loop aborted. " + e.toString());
 		} finally {
 			cleanup();
-			getLogger().info("ROS control loop has ended. Application terminated.");
+			custom_Cleanup();
+			getLogger().info("ROS control loop has ended. Application Terminated.");
 		}
 	}
 
@@ -242,6 +260,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 	void cleanup() {
 		running = false;
+		
 		if (nodeMainExecutor != null) {
 			getLogger().info("Stopping ROS nodes");
 			nodeMainExecutor.shutdown();	
@@ -249,4 +268,5 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		}
 		getLogger().info("Stopped ROS nodes");
 	}
+
 }

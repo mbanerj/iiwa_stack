@@ -55,7 +55,7 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 /*
  * This application allows to command the robot using SmartServo motions.
  */
-public class ROSSmartServo extends ROSBaseApplication {
+public abstract class ROSSmartServo extends ROSBaseApplication {
 
 	private Lock configureSmartServoLock = new ReentrantLock();
 
@@ -423,6 +423,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	@Override
 	protected void controlLoop() {
+		
 		if (subscriber.currentCommandType != null) {
 			configureSmartServoLock.lock();
 
@@ -495,4 +496,12 @@ public class ROSSmartServo extends ROSBaseApplication {
 			configureSmartServoLock.unlock();
 		}
 	}
+	
+	
+	 /*LEAVE THESE EMPTY - define functions in custom class (template provided)*/
+	/*protected void custom_InitializeApp() {getLogger().info("wrong custom_initialize");}
+	protected void custom_BeforeControlLoop() {getLogger().info("wrong beforecontrolloop");}
+	protected void custom_Loop() {getLogger().info("wrong custom loop");}
+	protected void custom_Cleanup() {getLogger().info("wrong custom_cleanup");}*/
+
 }

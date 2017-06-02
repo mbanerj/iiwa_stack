@@ -87,6 +87,7 @@ public class ROSMonitor extends ROSBaseApplication {
 		motion.setMinimumTrajectoryExecutionTime(20e-3);
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointVelocity());
 		motion.setTimeoutAfterGoalReach(300);
+		motion.validateForImpedanceMode(tool);
 		controlMode = new JointImpedanceControlMode(robot.getJointCount());
 		toolFrame.moveAsync(motion.setMode(controlMode)); 
 		oldmotion.getRuntime().stopMotion();
@@ -120,4 +121,10 @@ public class ROSMonitor extends ROSBaseApplication {
 			}
 		}
 	}
+	
+	/*LEAVE THESE EMPTY - define functions in custom class (template provided)*/
+	protected void custom_InitializeApp() {}
+	protected void custom_BeforeControlLoop() {}
+	protected void custom_Loop() {}
+	protected void custom_Cleanup() {}
 }
